@@ -5,7 +5,6 @@ from tkinter import ttk
 from login import init_driver, login_to_site, quit_driver
 import pandas as pd
 import os
-from datetime import datetime
 
 def center_window(window, width=580, height=400):
     window.update_idletasks()
@@ -36,7 +35,7 @@ class LoginApp:
 
         ttk.Checkbutton(frame, text="Chạy chế độ headless", variable=self.headless_var).grid(row=2, column=1, sticky=tk.W, pady=5)
 
-        ttk.Button(frame, text="🚀 Đăng nhập", command=self.run_login).grid(row=3, column=1, pady=15)
+        ttk.Button(frame, text="🚀 Đăng nhập 3 lần", command=self.run_login).grid(row=3, column=1, pady=15)
 
         self.log_text = tk.Text(self.root, height=10)
         self.log_text.pack(padx=20, pady=10, fill=tk.BOTH, expand=True)
@@ -57,26 +56,30 @@ class LoginApp:
             self.log_text.insert(tk.END, f"❌ Không thể khởi tạo trình duyệt: {str(e)}\n")
             return
 
-        status, message = login_to_site(driver, username, password)
-        quit_driver(driver)
-
-        if status == "success":
-            self.log_text.insert(tk.END, f"✅ Đăng nhập thành công!\n{message.strip()}\n")
-        elif status == "fail":
-            self.log_text.insert(tk.END, f"⚠️ Đăng nhập thất bại.\n{message.strip()}\n")
-        else:
-            self.log_text.insert(tk.END, f"❌ Lỗi trong quá trình đăng nhập:\n{message.strip()}\n")
-
-        # Xuất kết quả ra file Excel giống cấu trúc gốc
+        # Tạo cấu trúc bảng
         columns = [
             "TC ID", "Test case name", "Test case description", "Pre-processed steps",
             "Processed steps", "Expected results", "Actual results", "Pass / Fail", "Note"
         ]
-        row_data = ["TC001"] + [""] * 6 + ["Pass" if status == "success" else "Fail"] + [""]
+        result_data = []
 
-        df = pd.DataFrame([row_data], columns=columns)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(os.getcwd(), f"TestCase_Login_Result_{timestamp}.xlsx")
+        for i in range(1, 4):  # 3 lần chạy login
+            status, message = login_to_site(driver, username, password)
+            tc_id = f"TC{str(i).zfill(3)}"
+            row = [tc_id] + ["" for _ in range(6)] + ["Pass" if status == "success" else "Fail"] + [""]
+            result_data.append(row)
+
+            if status == "success":
+                self.log_text.insert(tk.END, f"[{tc_id}] ✅ Thành công: {message.strip()}\n")
+            elif status == "fail":
+                self.log_text.insert(tk.END, f"[{tc_id}] ⚠️ Thất bại: {message.strip()}\n")
+            else:
+                self.log_text.insert(tk.END, f"[{tc_id}] ❌ Lỗi: {message.strip()}\n")
+
+        quit_driver(driver)
+
+        df = pd.DataFrame(result_data, columns=columns)
+        output_path = os.path.join(os.getcwd(), "TestCase.xlsx")
         df.to_excel(output_path, index=False)
 
 if __name__ == "__main__":
