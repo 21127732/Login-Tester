@@ -1,7 +1,7 @@
 
-# Limbus Wiki Scraper
+# Auto Login
 
-A structured Python project using Selenium to extract data from the Limbus Company Wiki and optionally take screenshots.
+A structured Python project using Selenium to automatically login, test cases of different username, password and write an automatic report.
 
 ## Setup
 
@@ -12,12 +12,7 @@ pip install -r requirements.txt
 
 2. Run the program:
 ```
-python main.py
+python login_gui.py
 ```
 
-### Options
 
-- `headless_mode`: Set to `True` to run Chrome in the background.
-- `scrape_mode`: Set to `True` to take screenshots of each linked page. Will be automatically disabled in headless mode.
-
-Outputs will be saved in `/output/{section}/` folders.
